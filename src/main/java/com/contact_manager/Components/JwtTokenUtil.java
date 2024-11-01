@@ -58,7 +58,7 @@ public class JwtTokenUtil {
         return extractClaims(token, Claims::getExpiration).before(new Date());
     }
 
-
+}
 
 
 
@@ -92,4 +92,4 @@ public class JwtTokenUtil {
     public boolean validateToken(String token, String email) {
         return (extractEmail(token).equals(email) && !isTokenExpired(token));
     }*/
-}
+
