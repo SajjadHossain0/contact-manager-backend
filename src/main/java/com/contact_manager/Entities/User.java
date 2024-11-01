@@ -17,8 +17,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Lob
-//    private String image;
     private String name;
     @Column(unique = true)
     private String email;

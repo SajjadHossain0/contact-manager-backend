@@ -1,11 +1,15 @@
 package com.contact_manager.Controllers;
 
 import com.contact_manager.Components.JwtTokenUtil;
+import com.contact_manager.Entities.LoginRequest;
 import com.contact_manager.Entities.User;
-import com.contact_manager.Repository.UserRepository;
+import com.contact_manager.Services.UserDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,27 +19,29 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
 
     @Autowired
-    private AuthenticationManager authenticationManager ;
+    private UserDataService userDataService; // Change to UserDataService for registration and login
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private UserRepository userRepository;
+    private AuthenticationManager authenticationManager;
 
+    // Register a new user
     @PostMapping("/register")
-    public String registerUser(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("ROLE_USER");
-        userRepository.save(user);
-        return "User registered successfully";
+    public ResponseEntity<String> registerUser(@RequestBody User user) {
+        String response = userDataService.register(user);
+        return ResponseEntity.ok(response);
     }
 
+    // Log in an existing user and return JWT token
     @PostMapping("/login")
-    public String loginUser(@RequestBody User loginRequest) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        //return jwtTokenUtil.generateToken(loginRequest.getEmail());
-        return null;
+    public ResponseEntity<String> loginUser(@RequestBody LoginRequest loginRequest) {
+        try {
+            String token = userDataService.login(loginRequest.getEmail(), loginRequest.getPassword());
+            return ResponseEntity.ok(token);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(401).body("Invalid email or password");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body("User not found");
+        }
     }
-
 }

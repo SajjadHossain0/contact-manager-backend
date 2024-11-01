@@ -37,11 +37,18 @@ public class UserDataService {
 
     // Log in an existing user and return JWT token
     public String login(String email, String password) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Compare the raw password with the encrypted password
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        // If the password matches, generate the token
         return jwtTokenUtil.generateToken(user);
     }
+
 
     // Generate a new JWT refresh token
     public String refreshToken(String oldToken) {
