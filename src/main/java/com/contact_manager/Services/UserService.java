@@ -1,11 +1,14 @@
 package com.contact_manager.Services;
 
-import com.contact_manager.Entities.User;
 import com.contact_manager.Repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
+
 
     private final UserRepository userRepository;
 
@@ -13,7 +16,8 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User addUser(User user) {
-        return userRepository.save(user);
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return (UserDetails) userRepository.findByEmail(email);
     }
 }
