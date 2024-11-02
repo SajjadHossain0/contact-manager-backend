@@ -13,9 +13,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("api/auth")
+@CrossOrigin
 public class AuthenticationController {
 
     @Autowired
@@ -34,14 +38,23 @@ public class AuthenticationController {
 
     // Log in an existing user and return JWT token
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<Map<String, String>> loginUser(@RequestBody LoginRequest loginRequest) {
         try {
             String token = userDataService.login(loginRequest.getEmail(), loginRequest.getPassword());
-            return ResponseEntity.ok(token);
+            // Retrieve the user object
+            User user = userDataService.getUserByEmail(loginRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            response.put("userId", String.valueOf(user.getId())); // add userId to response
+
+            return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Invalid email or password");
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid email or password"));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body("User not found");
+            return ResponseEntity.status(404).body(Map.of("message", "User not found"));
         }
     }
+
 }
